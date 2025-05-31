@@ -1,0 +1,19 @@
+Flask==2.3.2
+Flask-SQLAlchemy==3.0.3
+Flask-Migrate==4.0.4
+Flask-Login==0.6.3
+Flask-Cors==3.0.10
+Authlib==1.3.0
+python-dotenv==1.0.0
+gunicorn==20.1.0
+requests==2.31.0
+psycopg2-binary==2.9.6        # PostgreSQL driver
+Werkzeug==2.3.7
+Pillow==10.0.0                 # For images/avatars
+bcrypt==4.0.1                  # For password hashing
+email-validator==1.3.1         # For validating emails in forms
+Flask-WTF==1.1.1               # For form handling and CSRF
+WTForms==3.0.1                 # Form validation
+itsdangerous==2.1.2            # Used by Flask for safe tokens
+python-jose==3.3.0             # For JWT tokens if needed
+Flask-Reuploaded==1.4.0        # For file uploads (avatars, etc.)

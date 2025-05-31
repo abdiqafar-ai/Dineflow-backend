@@ -1,0 +1,26 @@
+cat > .gitignore << 'EOF'
+# Ignore the virtual environment folder
+.Dineflow/
+.venv/
+venv/
+
+# Ignore environment variable file
+.env
+
+# Ignore Python bytecode and caches
+__pycache__/
+*.pyc
+
+# Ignore OS/editor artifacts
+.DS_Store
+.vscode/
+
+# Ignore logs, coverage, build artifacts
+*.log
+coverage/
+htmlcov/
+.pytest_cache/
+build/
+dist/
+*.egg-info/
+EOF
