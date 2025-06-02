@@ -17,3 +17,4 @@ WTForms==3.0.1                 # Form validation
 itsdangerous==2.1.2            # Used by Flask for safe tokens
 python-jose==3.3.0             # For JWT tokens if needed
 Flask-Reuploaded==1.4.0        # For file uploads (avatars, etc.)
+Flask-Mail==0.10.0

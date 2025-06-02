@@ -4,6 +4,8 @@ from models.user import db, User, RoleEnum
 from flask_login import login_user, logout_user, login_required
 from utils.google_oauth import oauth
 from datetime import datetime
+import secrets
+from flask_mail import Message
 
 auth_bp = Blueprint('auth_bp', __name__, url_prefix='/api/auth')
 
@@ -105,6 +107,54 @@ def google_callback():
     # 4) Log in and redirect
     login_user(user)
     return redirect("http://localhost:3000/dashboard")
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({"error": "No user with that email"}), 404
+
+    # Generate a reset token (you could also store expiration time)
+    token = secrets.token_urlsafe(32)
+    user.reset_token = token  # <-- Ensure this field exists in your User model
+    db.session.commit()
+
+    # You could send this via email in production
+    reset_link = f"http://localhost:3000/reset-password/{token}"
+
+    # Optional: Send email if using Flask-Mail
+    # msg = Message("Password Reset", recipients=[email])
+    # msg.body = f"Click this link to reset your password: {reset_link}"
+    # mail.send(msg)
+
+    return jsonify({"message": "Password reset link sent", "reset_link": reset_link}), 200
+
+# ------------------  Reset Password ------------------
+
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    data = request.get_json()
+    token = data.get('token')
+    new_password = data.get('new_password')
+
+    if not token or not new_password:
+        return jsonify({"error": "Token and new password are required"}), 400
+
+    user = User.query.filter_by(reset_token=token).first()
+    if not user:
+        return jsonify({"error": "Invalid or expired token"}), 400
+
+    user.password_hash = generate_password_hash(new_password)
+    user.reset_token = None  # Invalidate token after use
+    db.session.commit()
+
+    return jsonify({"message": "Password has been reset successfully"}), 200
 
 @auth_bp.route('/logout')
 @login_required

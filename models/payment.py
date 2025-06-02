@@ -1,0 +1,33 @@
+from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
+from . import db
+
+db = SQLAlchemy()
+
+class Payment(db.Model):
+    __tablename__ = 'payments'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    cashier_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    method = db.Column(db.String(50))
+    status = db.Column(db.String(20), default='pending')
+    transaction_id = db.Column(db.String(100), nullable=True, unique=True)
+    paid_at = db.Column(db.DateTime, default=datetime.utcnow)
+    tip_amount = db.Column(db.Float, default=0.0)
+    tax_amount = db.Column(db.Float, default=0.0)
+    discount = db.Column(db.Float, default=0.0)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "order_id": self.order_id,
+            "cashier": self.cashier.full_name if self.cashier else None,
+            "amount": self.amount,
+            "method": self.method,
+            "status": self.status,
+            "transaction_id": self.transaction_id,
+            "paid_at": self.paid_at.isoformat(),
+            "tip_amount": self.tip_amount
+        }

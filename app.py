@@ -1,20 +1,21 @@
-# app.py
-
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
-from flask_login import LoginManager
 import os
 
-from models.user import db, User
+from models import db, login_manager  # import from __init__.py
+from models.user import User
 from routes.auth_routes import auth_bp
 from routes.user_routes import user_bp
-from utils.google_oauth import oauth, init_oauth  # import both
+from routes.table_routes import table_bp
+# from routes.order_routes import order_bp
+# from routes.reservation_routes import reservation_bp
+from utils.google_oauth import init_oauth
 
 def create_app():
     app = Flask(__name__)
 
-    # Load config...
+    # Load config
     env = os.getenv("FLASK_ENV", "development")
     if env == "production":
         app.config.from_object("config.ProductionConfig")
@@ -23,22 +24,18 @@ def create_app():
 
     # Initialize extensions
     db.init_app(app)
+    login_manager.init_app(app)
     Migrate(app, db)
     CORS(app, supports_credentials=True)
-
-    login_manager = LoginManager()
-    login_manager.login_view = "auth_bp.login"
-    login_manager.init_app(app)
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
 
     # Register blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
+    app.register_blueprint(table_bp)
+    # app.register_blueprint(order_bp)
+    # app.register_blueprint(reservation_bp)
 
-    # **Initialize Google OAuth** (registers the 'google' client)
+    # Initialize Google OAuth
     init_oauth(app)
 
     # Ensure avatar folder exists
