@@ -8,6 +8,7 @@ from models.user import User
 from routes.auth_routes import auth_bp
 from routes.user_routes import user_bp
 from routes.table_routes import table_bp
+from routes.reservation_routes import reservation_routes
 # from routes.order_routes import order_bp
 # from routes.reservation_routes import reservation_bp
 from utils.google_oauth import init_oauth
@@ -32,6 +33,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(table_bp)
+    app.register_blueprint(reservation_routes)
     # app.register_blueprint(order_bp)
     # app.register_blueprint(reservation_bp)
 
