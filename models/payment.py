@@ -2,8 +2,6 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from . import db
 
-db = SQLAlchemy()
-
 class Payment(db.Model):
     __tablename__ = 'payments'
     
@@ -31,3 +29,19 @@ class Payment(db.Model):
             "paid_at": self.paid_at.isoformat(),
             "tip_amount": self.tip_amount
         }
+    def verify_payment(self):
+        """Verify payment status with payment processor"""
+        if self.method == 'mpesa':
+            return verify_mpesa_payment(self.transaction_id)
+        elif self.method in ['credit_card', 'debit_card']:
+            return verify_card_payment(self.transaction_id)
+        return True  # For cash payments
+
+        # Payment verification stubs
+def verify_mpesa_payment(transaction_id):
+            # In real implementation, check with M-Pesa API
+            return True
+
+def verify_card_payment(transaction_id):
+            # In real implementation, check with payment gateway
+            return True

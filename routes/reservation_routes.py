@@ -1,11 +1,15 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
-from models import db, Reservation
+from models import db
+from models.reservation import Reservation
+from utils.auth_decorators import admin_required
+from flask_login import login_required
 
 reservation_routes = Blueprint("reservation_routes", __name__, url_prefix="/api/reservations")
 
 @reservation_routes.route("", methods=["POST"])
+@login_required
 def create_reservation():
     data = request.get_json()
     try:
@@ -40,6 +44,7 @@ def create_reservation():
         return jsonify({"error": str(e)}), 400
 
 @reservation_routes.route("", methods=["GET"])
+@login_required
 def get_reservations():
     status = request.args.get("status")
     user_id = request.args.get("user_id")
@@ -61,11 +66,13 @@ def get_reservations():
     return jsonify([r.to_dict() for r in reservations])
 
 @reservation_routes.route("/<int:reservation_id>", methods=["GET"])
+@login_required
 def get_reservation(reservation_id):
     reservation = Reservation.query.get_or_404(reservation_id)
     return jsonify(reservation.to_dict())
 
 @reservation_routes.route("/<int:reservation_id>", methods=["PUT"])
+@login_required
 def update_reservation(reservation_id):
     data = request.get_json()
     reservation = Reservation.query.get_or_404(reservation_id)
@@ -99,6 +106,7 @@ def update_reservation(reservation_id):
         return jsonify({"error": str(e)}), 400
 
 @reservation_routes.route("/<int:reservation_id>", methods=["DELETE"])
+@admin_required
 def delete_reservation(reservation_id):
     reservation = Reservation.query.get_or_404(reservation_id)
     try:
@@ -110,6 +118,7 @@ def delete_reservation(reservation_id):
         return jsonify({"error": str(e)}), 500
 
 @reservation_routes.route("/<int:reservation_id>/status", methods=["PATCH"])
+@admin_required
 def update_reservation_status(reservation_id):
     data = request.get_json()
     reservation = Reservation.query.get_or_404(reservation_id)
@@ -123,6 +132,7 @@ def update_reservation_status(reservation_id):
     return jsonify(reservation.to_dict())
 
 @reservation_routes.route("/check-availability", methods=["POST"])
+@login_required
 def check_availability():
     data = request.get_json()
     try:
@@ -138,6 +148,7 @@ def check_availability():
         return jsonify({"error": str(e)}), 400
 
 @reservation_routes.route("/upcoming", methods=["GET"])
+@login_required
 def upcoming_reservations():
     user_id = request.args.get("user_id")
     from_time = datetime.utcnow()

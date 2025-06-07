@@ -1,17 +1,24 @@
 from sqlalchemy import event
 from datetime import timedelta
 from . import db
-from .order import Order
-from .order_item import OrderItem
+from .menu import Order, OrderItem  # Combined models file
 from .reservation import Reservation
 
 # OrderItem after_insert event
 @event.listens_for(OrderItem, 'after_insert')
-def update_order_estimation(mapper, connection, target):
-    order = Order.query.get(target.order_id)
-    if order:
-        order.update_estimation()
-        db.session.add(order)
+def flag_order_for_estimation_update(mapper, connection, target):
+    """Flag the order for estimation update."""
+    target.order_requires_estimation_update = True
+
+@event.listens_for(db.session, 'after_flush')
+def update_estimation_after_flush(session, flush_context):
+    """Update estimation for orders that require it after the flush."""
+    for obj in session.dirty:
+        if isinstance(obj, OrderItem) and hasattr(obj, 'order_requires_estimation_update') and obj.order_requires_estimation_update:
+            order = db.session.get(Order, obj.order_id)
+            if order:
+                order.update_estimation()
+                del obj.order_requires_estimation_update  # Clean up flag
 
 # Reservation before_insert event
 @event.listens_for(Reservation, 'before_insert')

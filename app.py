@@ -5,10 +5,18 @@ import os
 
 from models import db, login_manager  # import from __init__.py
 from models.user import User
+from models.table import Table
+from models.reservation import Reservation
+from models.menu import MenuCategory, MenuItem, Order, OrderItem
+from models.payment import Payment  # Ensure this import is correct
+from models.activity_log import ActivityLog
+from models.notification import Notification
 from routes.auth_routes import auth_bp
 from routes.user_routes import user_bp
 from routes.table_routes import table_bp
 from routes.reservation_routes import reservation_routes
+from routes.menu_routes import menu_routes
+from routes.payment_routes import payment_routes
 # from routes.order_routes import order_bp
 # from routes.reservation_routes import reservation_bp
 from utils.google_oauth import init_oauth
@@ -34,6 +42,8 @@ def create_app():
     app.register_blueprint(user_bp)
     app.register_blueprint(table_bp)
     app.register_blueprint(reservation_routes)
+    app.register_blueprint(menu_routes)
+    app.register_blueprint(payment_routes)
     # app.register_blueprint(order_bp)
     # app.register_blueprint(reservation_bp)
 
