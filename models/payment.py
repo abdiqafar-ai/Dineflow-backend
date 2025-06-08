@@ -17,17 +17,21 @@ class Payment(db.Model):
     tax_amount = db.Column(db.Float, default=0.0)
     discount = db.Column(db.Float, default=0.0)
 
+    cashier = db.relationship('User', backref='payments', foreign_keys=[cashier_id])
+
     def to_dict(self):
         return {
             "id": self.id,
             "order_id": self.order_id,
-            "cashier": self.cashier.full_name if self.cashier else None,
+            "cashier_id": self.cashier_id,  # Just show ID instead of name
             "amount": self.amount,
             "method": self.method,
             "status": self.status,
             "transaction_id": self.transaction_id,
-            "paid_at": self.paid_at.isoformat(),
-            "tip_amount": self.tip_amount
+            "paid_at": self.paid_at.isoformat() if self.paid_at else None,
+            "tip_amount": self.tip_amount,
+            "tax_amount": self.tax_amount,
+            "discount": self.discount
         }
     def verify_payment(self):
         """Verify payment status with payment processor"""
