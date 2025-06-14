@@ -1,7 +1,7 @@
-from flask import Blueprint, request, jsonify, redirect, url_for
+from flask import Blueprint, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash
 from models.user import db, User, RoleEnum
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from utils.google_oauth import oauth
 from datetime import datetime
 import secrets
@@ -49,7 +49,6 @@ def login():
         return jsonify({"error": "Invalid credentials"}), 401
 
     if not user.password_hash:
-        # No password set (likely a Google-created account)
         return jsonify({"error": "User must sign in via Google"}), 401
 
     if not user.check_password(password):
@@ -62,21 +61,24 @@ def login():
         if user.suspension_ends_at and user.suspension_ends_at > datetime.utcnow():
             return jsonify({"error": f"Account is suspended until {user.suspension_ends_at}"}), 403
         else:
-            # Suspension expired, optionally auto-activate user here
             user.status = "active"
             db.session.commit()
 
     login_user(user)
-    return jsonify({
+    
+    # Create response with user data
+    response = jsonify({
         "message": "Login successful",
         "user": {
             "id": user.id,
             "full_name": user.full_name,
             "email": user.email,
-            "role": user.role,
+            "role": user.role.value,  # Use .value for Enum serialization
             "avatar_url": user.avatar_url
         }
-    }), 200
+    })
+    
+    return response, 200
 
 @auth_bp.route('/google/login')
 def google_login():
@@ -160,4 +162,6 @@ def reset_password():
 @login_required
 def logout():
     logout_user()
-    return jsonify({"message": "Logged out"}), 200
+    response = jsonify({"message": "Logged out"})
+    response.set_cookie('session', '', expires=0)  # Clear session cookie
+    return response, 200

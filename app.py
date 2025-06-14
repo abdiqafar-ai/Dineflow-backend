@@ -1,35 +1,33 @@
+import os
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
-import os
+from dotenv import load_dotenv
 
-from models import db, login_manager  # import from __init__.py
-from models.user import User
-from models.table import Table
-from models.reservation import Reservation
-from models.menu import MenuCategory, MenuItem, Order, OrderItem
-from models.payment import Payment  # Ensure this import is correct
-from models.activity_log import ActivityLog
-from models.notification import Notification
+# Load environment variables from .env file first
+load_dotenv()
+
+# Import configuration after loading environment variables
+from config import DevelopmentConfig, ProductionConfig
+from models import db, login_manager
 from routes.auth_routes import auth_bp
 from routes.user_routes import user_bp
 from routes.table_routes import table_bp
 from routes.reservation_routes import reservation_routes
 from routes.menu_routes import menu_routes
 from routes.payment_routes import payment_routes
-# from routes.order_routes import order_bp
-# from routes.reservation_routes import reservation_bp
+from routes.notification_routes import notification_routes
 from utils.google_oauth import init_oauth
 
 def create_app():
+    """Application factory function"""
     app = Flask(__name__)
-
-    # Load config
+    
+    # Determine environment and load config
     env = os.getenv("FLASK_ENV", "development")
-    if env == "production":
-        app.config.from_object("config.ProductionConfig")
-    else:
-        app.config.from_object("config.DevelopmentConfig")
+    app.config.from_object(
+        ProductionConfig() if env == "production" else DevelopmentConfig()
+    )
 
     # Initialize extensions
     db.init_app(app)
@@ -44,17 +42,16 @@ def create_app():
     app.register_blueprint(reservation_routes)
     app.register_blueprint(menu_routes)
     app.register_blueprint(payment_routes)
-    # app.register_blueprint(order_bp)
-    # app.register_blueprint(reservation_bp)
+    app.register_blueprint(notification_routes)
 
     # Initialize Google OAuth
     init_oauth(app)
 
     # Ensure avatar folder exists
-    os.makedirs(app.config.get("UPLOAD_FOLDER", "static/avatars"), exist_ok=True)
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     return app
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)

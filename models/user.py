@@ -20,6 +20,7 @@ class User(db.Model, UserMixin):
     id                = db.Column(db.Integer, primary_key=True)
     full_name         = db.Column(db.String(150), nullable=False)
     email             = db.Column(db.String(150), unique=True, nullable=False, index=True)
+    email_notifications = db.Column(db.Boolean, default=True)
     password_hash     = db.Column(db.String(256))
     role              = db.Column(db.Enum(RoleEnum), default=RoleEnum.CUSTOMER, nullable=False)
     avatar_url        = db.Column(db.String(255), default="/static/avatars/default.png")
@@ -37,6 +38,16 @@ class User(db.Model, UserMixin):
         cascade='all, delete-orphan',
         lazy='dynamic',
     )
+
+    sent_notifications = db.relationship('Notification', 
+        foreign_keys='Notification.sender_id',
+        backref='sender_ref',
+        lazy='dynamic')
+    
+    received_notifications = db.relationship('Notification', 
+        foreign_keys='Notification.recipient_id',
+        backref='recipient_ref',
+        lazy='dynamic')
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
