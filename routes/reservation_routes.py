@@ -159,3 +159,25 @@ def upcoming_reservations():
 
     reservations = query.order_by(Reservation.reservation_time).all()
     return jsonify([r.to_dict() for r in reservations])
+
+@reservation_routes.route("/count", methods=["GET"])
+@login_required
+def count_reservations():
+    status   = request.args.get("status")
+    user_id  = request.args.get("user_id")
+    date_str = request.args.get("date")
+
+    query = Reservation.query
+    if status:
+        query = query.filter_by(status=status)
+    if user_id:
+        query = query.filter_by(user_id=user_id)
+    if date_str:
+        try:
+            date = datetime.fromisoformat(date_str).date()
+            query = query.filter(db.func.date(Reservation.reservation_time) == date)
+        except ValueError:
+            return jsonify({"error": "Invalid date format"}), 400
+
+    total = query.count()
+    return jsonify({"count": total})

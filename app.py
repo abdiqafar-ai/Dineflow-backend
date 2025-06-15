@@ -33,7 +33,7 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     Migrate(app, db)
-    CORS(app, supports_credentials=True)
+    CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
 
     # Register blueprints
     app.register_blueprint(auth_bp)
